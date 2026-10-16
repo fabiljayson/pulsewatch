@@ -62,6 +62,20 @@ export function formatCount(value: number): string {
   return new Intl.NumberFormat().format(value);
 }
 
+export function formatInterval(seconds: number): string {
+  if (seconds <= 0) return "disabled";
+  if (seconds % 3600 === 0) {
+    const hours = seconds / 3600;
+    return hours === 1 ? "every hour" : `every ${hours} hours`;
+  }
+  if (seconds % 60 === 0) {
+    const minutes = seconds / 60;
+    return minutes === 1 ? "every minute" : `every ${minutes} minutes`;
+  }
+  if (seconds < 60) return seconds === 1 ? "every second" : `every ${seconds} seconds`;
+  return `every ${Math.floor(seconds / 60)} min ${seconds % 60} s`;
+}
+
 export function formatWindow(hours: number): string {
   if (hours % 24 === 0) {
     const days = hours / 24;

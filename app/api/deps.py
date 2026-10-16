@@ -11,6 +11,7 @@ from fastapi import Request
 from app.config import Settings
 from app.database import Database
 from app.services.checker import CheckService
+from app.services.scheduler import Scheduler
 
 
 def get_settings(request: Request) -> Settings:
@@ -26,3 +27,8 @@ def get_database(request: Request) -> Database:
 def get_checker(request: Request) -> CheckService:
     """Health-check service (mockable via the app factory)."""
     return request.app.state.checker
+
+
+def get_scheduler(request: Request) -> Scheduler:
+    """Background scheduler holding the status shown in Settings."""
+    return request.app.state.scheduler

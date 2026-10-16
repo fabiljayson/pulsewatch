@@ -1,7 +1,7 @@
 /* ── Demo API: same interface as the live client, backed by sample data ── */
 
 import { ApiError } from "../api/client";
-import type { Endpoint, EndpointList } from "../api/types";
+import type { Endpoint, EndpointList, SchedulerStatus } from "../api/types";
 import type { PulseWatchApi } from "../api/pulsewatch";
 import {
   buildDemoDataset,
@@ -95,5 +95,15 @@ export function createDemoApi(http: Pick<PulseWatchApi, "health">): PulseWatchAp
 
     trend: (params = {}) =>
       respond(demoTrend(dataset, params.hours ?? 24, params.endpointId, params.granularity ?? "auto")),
+
+    scheduler: () =>
+      respond<SchedulerStatus>({
+        enabled: false,
+        interval_seconds: 0,
+        last_run_at: null,
+        last_run_checked: 0,
+        next_run_at: null,
+        total_checks: 0,
+      }),
   };
 }

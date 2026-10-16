@@ -7,8 +7,10 @@ Run locally with::
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import Any
 
 import httpx
@@ -18,16 +20,23 @@ from app import __version__
 from app.api.aggregates import router as aggregates_router
 from app.api.auth import router as auth_router
 from app.api.endpoints import router
+from app.api.scheduler import router as scheduler_router
 from app.auth import require_auth
 from app.config import Settings
 from app.database import Database
 from app.services.checker import CheckService
+from app.services.scheduler import Scheduler
 from app.services.url_validation import Resolver, resolve_host
+
+logger = logging.getLogger("pulsewatch")
 
 OPENAPI_TAGS = [
     {"name": "health", "description": "Liveness of the PulseWatch service itself."},
     {"name": "endpoints", "description": "Register and manage monitored endpoints."},
-    {"name": "checks", "description": "Execute health checks on demand."},
+    {
+        "name": "checks",
+        "description": "Execute health checks on demand or inspect the automatic scheduler.",
+    },
     {"name": "history", "description": "Persisted check results, newest first."},
     {"name": "reports", "description": "Reliability metrics over an explicit time window."},
     {"name": "auth", "description": "Single-admin login (enabled when a password is configured)."},
@@ -56,11 +65,34 @@ def create_app(
     """Build an application instance; injectable for tests."""
     resolved_settings = settings or Settings.from_env()
     database = Database(resolved_settings.db_path)
+    checker = CheckService(
+        database,
+        resolved_settings,
+        resolver=resolver or resolve_host,
+        transport=transport,
+        client_factory=client_factory,
+    )
+    scheduler = Scheduler(database, resolved_settings, checker)
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
         database.initialize()
-        yield
+        task: asyncio.Task[None] | None = None
+        if scheduler.enabled:
+            task = asyncio.create_task(scheduler.run())
+            scheduler.task = task
+            logger.info(
+                "automatic checks enabled: every %ss",
+                resolved_settings.check_interval_seconds,
+            )
+        try:
+            yield
+        finally:
+            if task is not None:
+                task.cancel()
+                with suppress(asyncio.CancelledError):
+                    await task
+                scheduler.task = None
 
     app = FastAPI(
         title="PulseWatch",
@@ -72,16 +104,12 @@ def create_app(
     )
     app.state.settings = resolved_settings
     app.state.database = database
-    app.state.checker = CheckService(
-        database,
-        resolved_settings,
-        resolver=resolver or resolve_host,
-        transport=transport,
-        client_factory=client_factory,
-    )
+    app.state.checker = checker
+    app.state.scheduler = scheduler
     app.include_router(auth_router)
     app.include_router(aggregates_router, dependencies=[Depends(require_auth)])
     app.include_router(router, dependencies=[Depends(require_auth)])
+    app.include_router(scheduler_router, dependencies=[Depends(require_auth)])
 
     @app.get(
         "/health",

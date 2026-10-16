@@ -148,3 +148,12 @@ export interface LoginResponse {
 export interface CurrentUser {
   username: string;
 }
+
+export interface SchedulerStatus {
+  enabled: boolean;
+  interval_seconds: number;
+  last_run_at: string | null;
+  last_run_checked: number;
+  next_run_at: string | null;
+  total_checks: number;
+}

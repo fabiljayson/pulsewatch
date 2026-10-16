@@ -46,7 +46,7 @@ def failing_resolver(hostname: str, port: int) -> list[str]:
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
     """Settings backed by a per-test temporary SQLite file."""
-    return Settings(db_path=tmp_path / "test.db")
+    return Settings(db_path=tmp_path / "test.db", check_interval_seconds=0)
 
 
 @pytest.fixture

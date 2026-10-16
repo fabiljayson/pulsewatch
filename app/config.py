@@ -74,6 +74,7 @@ class Settings:
     degraded_latency_ms: float = 1000.0
     admin_username: str = "admin"
     admin_password: str | None = None  # None disables authentication entirely
+    check_interval_seconds: int = 300  # 0 disables the automatic scheduler
 
     @property
     def auth_enabled(self) -> bool:
@@ -104,4 +105,7 @@ class Settings:
             ),
             admin_username=_env_str("PULSEWATCH_ADMIN_USERNAME", "admin"),
             admin_password=os.environ.get("PULSEWATCH_ADMIN_PASSWORD") or None,
+            check_interval_seconds=_env_int(
+                "PULSEWATCH_CHECK_INTERVAL_SECONDS", 300, minimum=0, maximum=86400
+            ),
         )

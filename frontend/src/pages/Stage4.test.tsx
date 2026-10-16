@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { AuthStatus, EndpointList, Summary } from "../api/types";
+import type { AuthStatus, EndpointList, SchedulerStatus, Summary } from "../api/types";
 import App from "../App";
 
 const WINDOW = {
@@ -29,12 +29,22 @@ const summary: Summary = {
 
 const emptyEndpoints: EndpointList = { total: 0, limit: 500, offset: 0, items: [] };
 
+const scheduler: SchedulerStatus = {
+  enabled: true,
+  interval_seconds: 300,
+  last_run_at: "2026-10-16T11:00:00+00:00",
+  last_run_checked: 3,
+  next_run_at: "2026-10-16T11:05:00+00:00",
+  total_checks: 42,
+};
+
 function jsonResponse(status: number, body: unknown) {
   return { ok: status < 400, status, text: async () => JSON.stringify(body) } as Response;
 }
 
 function route(url: string): Response {
   if (url.includes("/api/v1/auth/status")) return jsonResponse(200, AUTH_DISABLED);
+  if (url.includes("/api/v1/scheduler")) return jsonResponse(200, scheduler);
   if (url.includes("/api/v1/summary")) return jsonResponse(200, summary);
   if (url.includes("/api/v1/trend")) {
     return jsonResponse(200, { window: WINDOW, granularity: "hour", endpoint_id: null, buckets: [] });
@@ -137,9 +147,17 @@ describe("Settings", () => {
     expect(await screen.findByRole("heading", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByText("Disabled")).toBeInTheDocument();
 
+    expect(
+      await screen.findByRole("heading", { name: "Automatic checks" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("every 5 minutes")).toBeInTheDocument();
+    expect(screen.getByText(/3 endpoints checked/)).toBeInTheDocument();
+    expect(screen.getByText("42")).toBeInTheDocument();
+
     await user.click(screen.getByTestId("settings-demo-toggle"));
     expect(await screen.findByText("Sample data on")).toBeInTheDocument();
     expect(screen.getByText("Sample data.")).toBeInTheDocument();
+    expect(screen.getByText(/has no background scheduler/)).toBeInTheDocument();
 
     await user.click(screen.getByTestId("settings-demo-toggle"));
     await waitFor(() => expect(screen.getByText("Live data")).toBeInTheDocument());

@@ -69,6 +69,15 @@ def get_endpoint(db: Database, endpoint_id: int) -> MonitoredEndpoint | None:
     return _row_to_endpoint(row) if row else None
 
 
+def list_active_endpoints(db: Database) -> list[MonitoredEndpoint]:
+    """Return every active endpoint (oldest first) for the scheduler pass."""
+    with db.connection() as conn:
+        rows = conn.execute(
+            "SELECT * FROM monitored_endpoints WHERE is_active = 1 ORDER BY id ASC"
+        ).fetchall()
+    return [_row_to_endpoint(row) for row in rows]
+
+
 def list_endpoints(db: Database, *, limit: int, offset: int) -> tuple[list[MonitoredEndpoint], int]:
     """Return a page of endpoints (newest first) and the total count."""
     with db.connection() as conn:

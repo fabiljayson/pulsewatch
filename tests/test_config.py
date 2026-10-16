@@ -21,6 +21,7 @@ def test_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     assert settings.max_redirects == 3
     assert settings.history_max_limit == 100
     assert settings.report_default_hours == 24
+    assert settings.check_interval_seconds == 300
 
 
 def test_custom_values(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -31,6 +32,7 @@ def test_custom_values(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("PULSEWATCH_MAX_REDIRECTS", "5")
     monkeypatch.setenv("PULSEWATCH_HISTORY_MAX_LIMIT", "50")
     monkeypatch.setenv("PULSEWATCH_REPORT_DEFAULT_HOURS", "12")
+    monkeypatch.setenv("PULSEWATCH_CHECK_INTERVAL_SECONDS", "60")
     settings = Settings.from_env()
     assert settings.http_timeout_seconds == 7.5
     assert settings.http_connect_timeout_seconds == 1.5
@@ -38,6 +40,7 @@ def test_custom_values(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     assert settings.max_redirects == 5
     assert settings.history_max_limit == 50
     assert settings.report_default_hours == 12
+    assert settings.check_interval_seconds == 60
 
 
 @pytest.mark.parametrize(
@@ -52,6 +55,8 @@ def test_custom_values(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         ("PULSEWATCH_HISTORY_MAX_LIMIT", "0"),
         ("PULSEWATCH_REPORT_DEFAULT_HOURS", "x"),
         ("PULSEWATCH_ALLOW_REDIRECTS", "maybe"),
+        ("PULSEWATCH_CHECK_INTERVAL_SECONDS", "abc"),
+        ("PULSEWATCH_CHECK_INTERVAL_SECONDS", "-1"),
     ],
 )
 def test_invalid_values_raise(
@@ -76,4 +81,6 @@ def test_boolean_forms(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 def test_blank_env_falls_back_to_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("PULSEWATCH_DB_PATH", str(tmp_path / "x.db"))
     monkeypatch.setenv("PULSEWATCH_HTTP_TIMEOUT_SECONDS", "   ")
+    monkeypatch.setenv("PULSEWATCH_CHECK_INTERVAL_SECONDS", "")
     assert Settings.from_env().http_timeout_seconds == 5.0
+    assert Settings.from_env().check_interval_seconds == 300

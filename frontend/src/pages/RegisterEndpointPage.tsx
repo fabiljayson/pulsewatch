@@ -217,8 +217,10 @@ export function RegisterEndpointPage() {
         <Card variant="compact" title="What happens next">
           <ul className="plain-list">
             <li>
-              <strong>On-demand checks.</strong> PulseWatch has no background scheduler: run checks
-              manually from the endpoint page or in bulk from the overview.
+              <strong>Automatic checks.</strong> The backend verifies every active endpoint at a
+              global interval (<code className="mono">PULSEWATCH_CHECK_INTERVAL_SECONDS</code>,
+              5 minutes by default); you can still run one manually from the endpoint page or in
+              bulk from the overview.
             </li>
             <li>
               <strong>SSRF policy.</strong> Loopback, private, and link-local destinations are

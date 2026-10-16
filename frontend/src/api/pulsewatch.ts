@@ -11,6 +11,7 @@ import type {
   Health,
   HistoryPage,
   Report,
+  SchedulerStatus,
   Summary,
   Trend,
 } from "./types";
@@ -78,6 +79,7 @@ export interface PulseWatchApi {
   ): Promise<GlobalHistoryPage>;
   summary(params?: WindowParams, signal?: AbortSignal): Promise<Summary>;
   trend(params?: TrendParams, signal?: AbortSignal): Promise<Trend>;
+  scheduler(signal?: AbortSignal): Promise<SchedulerStatus>;
 }
 
 export function createHttpApi(): PulseWatchApi {
@@ -150,5 +152,7 @@ export function createHttpApi(): PulseWatchApi {
           granularity: params.granularity,
         },
       }),
+
+    scheduler: (signal) => request<SchedulerStatus>("/api/v1/scheduler", { signal }),
   };
 }

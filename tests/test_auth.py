@@ -14,7 +14,12 @@ from app.main import create_app
 
 @pytest.fixture
 def auth_settings(tmp_path: Path) -> Settings:
-    return Settings(db_path=tmp_path / "auth.db", admin_username="admin", admin_password="s3cret")
+    return Settings(
+        db_path=tmp_path / "auth.db",
+        admin_username="admin",
+        admin_password="s3cret",
+        check_interval_seconds=0,
+    )
 
 
 @pytest.fixture

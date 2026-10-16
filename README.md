@@ -3,7 +3,7 @@
 > Every request tells a story. Every failure leaves a trace.
 
 **PulseWatch — API Health & Reliability Observatory** is a lightweight API
-monitoring service. It checks HTTP/HTTPS endpoints on demand, measures response
+monitoring service. It checks HTTP/HTTPS endpoints automatically and on demand, measures response
 latency with a monotonic clock, records success and failure events in SQLite,
 and computes reliability reports — availability percentage, average latency,
 and check counts over an explicit time window.
@@ -126,6 +126,7 @@ All configuration is environment-driven with safe defaults (see
 | `PULSEWATCH_MAX_REDIRECTS`               | `3`             | Redirect hop cap when enabled                |
 | `PULSEWATCH_HISTORY_MAX_LIMIT`           | `100`           | Upper bound for history `limit`             |
 | `PULSEWATCH_REPORT_DEFAULT_HOURS`        | `24`            | Default report window                        |
+| `PULSEWATCH_CHECK_INTERVAL_SECONDS`      | `300`           | Background pass frequency (`0` disables)     |
 
 ## Running the service
 
@@ -349,7 +350,7 @@ surface. The implemented policy:
 
 ## Known limitations (Day 01)
 
-- Checks run **on demand only** — there is no background scheduler yet.
+- The scheduler applies **one global interval** to every endpoint (`PULSEWATCH_CHECK_INTERVAL_SECONDS`); per-endpoint frequencies are not supported yet.
 - Checking an inactive endpoint returns `409 Conflict`; activate it first.
 - Single-process, single-file SQLite storage; fine for one operator, not for
   multi-tenant scale.
@@ -358,7 +359,7 @@ surface. The implemented policy:
 
 ## Roadmap
 
-- Background scheduler with per-endpoint intervals and jittered execution
+- Per-endpoint intervals and jittered execution for the scheduler (today: one global interval)
 - Multi-status expectations (assert a specific status, not just 2xx/3xx)
 - Response-time SLOs and rolling-window availability (e.g. 30-day)
 - Webhook / email / Slack alerting on failure streaks

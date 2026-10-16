@@ -1,17 +1,18 @@
 import { useApiContext } from "../api/ApiProvider";
-import { useWindowHours } from "../hooks";
+import { useResource, useWindowHours } from "../hooks";
 import { useAuth } from "../auth/AuthProvider";
 import { PageHeader } from "../components/layout";
-import { Button, Card, Segmented, useToast } from "../components/ui";
-import { formatWindow } from "../lib/format";
+import { Button, Card, ErrorState, Segmented, useToast } from "../components/ui";
+import { formatCount, formatInterval, formatRelative, formatWindow } from "../lib/format";
 import { WINDOW_OPTIONS } from "../lib/window";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "") || "same origin";
 
 export function SettingsPage() {
-  const { demo, setDemo } = useApiContext();
+  const { api, demo, setDemo } = useApiContext();
   const { status, user, logout } = useAuth();
   const [hours, setHours] = useWindowHours();
+  const scheduler = useResource("settings-scheduler", (signal) => api.scheduler(signal), !demo);
   const toast = useToast();
 
   const onToggleDemo = () => {
@@ -80,6 +81,60 @@ export function SettingsPage() {
                 <code className="mono">pulsewatch.windowHours</code> in this browser only.
               </p>
             </div>
+          </Card>
+        </div>
+
+        <div className="span-12">
+          <Card
+            title="Automatic checks"
+            subtitle="Background passes that verify every active endpoint in one go."
+          >
+            {demo ? (
+              <p className="text-sm muted">
+                Sample data has no background scheduler. Automatic passes only run against your
+                real database — exit sample data to see their status here.
+              </p>
+            ) : scheduler.loading && !scheduler.data ? (
+              <p className="text-sm muted">Loading scheduler status…</p>
+            ) : scheduler.error ? (
+              <ErrorState
+                title="Scheduler status unavailable"
+                error={scheduler.error}
+                onRetry={scheduler.reload}
+                compact
+              />
+            ) : scheduler.data && !scheduler.data.enabled ? (
+              <p className="text-sm muted">
+                Automatic checks are off. Set{" "}
+                <code className="mono">PULSEWATCH_CHECK_INTERVAL_SECONDS</code> to a positive
+                interval in seconds (0 keeps them off) and restart the API.
+              </p>
+            ) : scheduler.data ? (
+              <div className="stack">
+                <div className="row">
+                  <span className="badge badge--success">
+                    <span className="badge__icon" aria-hidden="true">
+                      ●
+                    </span>
+                    Active
+                  </span>
+                  <span className="text-sm muted">
+                    {formatInterval(scheduler.data.interval_seconds)}
+                  </span>
+                </div>
+                <dl className="kv">
+                  <dt>Last pass</dt>
+                  <dd>
+                    {formatRelative(scheduler.data.last_run_at)} ·{" "}
+                    {`${scheduler.data.last_run_checked} endpoints checked`}
+                  </dd>
+                  <dt>Next pass</dt>
+                  <dd>{formatRelative(scheduler.data.next_run_at)}</dd>
+                  <dt>Checks recorded</dt>
+                  <dd>{formatCount(scheduler.data.total_checks)}</dd>
+                </dl>
+              </div>
+            ) : null}
           </Card>
         </div>
 

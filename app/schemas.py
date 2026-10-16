@@ -288,3 +288,21 @@ class TrendRead(BaseModel):
     granularity: Literal["hour", "day"]
     endpoint_id: int | None = None
     buckets: list[TrendBucket]
+
+
+class SchedulerStatusRead(BaseModel):
+    """Automatic-check scheduler status for the Settings screen."""
+
+    enabled: bool = Field(description="False when the interval is 0 (disabled).")
+    interval_seconds: int = Field(description="Pass frequency in seconds.")
+    last_run_at: str | None = Field(
+        default=None,
+        description="UTC ISO-8601 end of the last completed pass; null before any pass.",
+    )
+    last_run_checked: int = Field(
+        default=0, description="Active endpoints visited during the last pass."
+    )
+    next_run_at: str | None = Field(
+        default=None, description="UTC ISO-8601 of the next pass; null when disabled."
+    )
+    total_checks: int = Field(default=0, description="Cumulative checks recorded by the scheduler.")
