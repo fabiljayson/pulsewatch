@@ -4,6 +4,122 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo-mark.png";
 import { useAuth } from "../auth/AuthProvider";
 
+const SCREENS = [
+  {
+    to: "/dashboard",
+    glyph: "◈",
+    name: "Overview",
+    text: "Fleet health at a glance: endpoint counts, availability, latency, the trend chart, and checks that need attention.",
+  },
+  {
+    to: "/endpoints",
+    glyph: "☰",
+    name: "Endpoints",
+    text: "Register, search, pause, and check endpoints — status, availability, and last check on every row.",
+  },
+  {
+    to: "/history",
+    glyph: "◷",
+    name: "Monitoring history",
+    text: "Every recorded check, newest first, filterable by result or endpoint with pagination.",
+  },
+  {
+    to: "/analytics",
+    glyph: "◔",
+    name: "Reliability analytics",
+    text: "Fleet metrics, availability over time, and a worst-first endpoint reliability ranking.",
+  },
+  {
+    to: "/reports",
+    glyph: "▤",
+    name: "Reports",
+    text: "Scoped availability reports for the whole fleet or one endpoint, with failure-cause breakdowns.",
+  },
+  {
+    to: "/incidents",
+    glyph: "⚠",
+    name: "Failure events",
+    text: "Failed checks grouped into per-endpoint outage events with first/last seen and dominant cause.",
+  },
+] as const;
+
+const PREVIEW_BARS: { pass: number; fail: number }[] = [
+  { pass: 44, fail: 0 },
+  { pass: 52, fail: 0 },
+  { pass: 48, fail: 10 },
+  { pass: 56, fail: 0 },
+  { pass: 50, fail: 0 },
+  { pass: 38, fail: 22 },
+  { pass: 54, fail: 0 },
+  { pass: 58, fail: 0 },
+  { pass: 46, fail: 8 },
+  { pass: 60, fail: 0 },
+  { pass: 55, fail: 0 },
+  { pass: 52, fail: 0 },
+];
+
+function AppPreview() {
+  return (
+    <div
+      className="app-preview"
+      role="img"
+      aria-label="Preview of the PulseWatch overview dashboard with illustrative numbers"
+    >
+      <div className="app-preview__chrome" aria-hidden="true">
+        <span className="app-preview__dot" />
+        <span className="app-preview__dot" />
+        <span className="app-preview__dot" />
+        <span className="app-preview__url">localhost:5173/dashboard</span>
+      </div>
+      <div className="app-preview__body" aria-hidden="true">
+        <div className="app-preview__metrics">
+          <span className="app-metric">
+            <span className="app-metric__label">Endpoints</span>
+            <span className="app-metric__value">12</span>
+            <span className="app-metric__hint">11 active · 1 inactive</span>
+          </span>
+          <span className="app-metric">
+            <span className="app-metric__label">Healthy</span>
+            <span className="app-metric__value app-metric__value--success">10</span>
+            <span className="app-metric__hint">of 11 checked</span>
+          </span>
+          <span className="app-metric">
+            <span className="app-metric__label">Needs attention</span>
+            <span className="app-metric__value app-metric__value--warning">1</span>
+            <span className="app-metric__hint">0 failing · 1 degraded</span>
+          </span>
+          <span className="app-metric">
+            <span className="app-metric__label">Availability</span>
+            <span className="app-metric__value app-metric__value--success">99.42%</span>
+            <span className="app-metric__hint">last 24 hours</span>
+          </span>
+        </div>
+        <div className="app-preview__chart">
+          {PREVIEW_BARS.map((bar, index) => (
+            <span className="app-bar" key={index}>
+              {bar.fail > 0 ? <span className="app-bar__fail" style={{ height: bar.fail }} /> : null}
+              <span className="app-bar__pass" style={{ height: bar.pass }} />
+            </span>
+          ))}
+        </div>
+        <div className="app-preview__rows">
+          <span className="app-preview__row">
+            <span>Payments API</span>
+            <span className="app-preview__state app-preview__state--ok">✓ Healthy · 92 ms</span>
+          </span>
+          <span className="app-preview__row">
+            <span>Billing webhooks</span>
+            <span className="app-preview__state app-preview__state--warn">▲ Degraded · 1.4 s</span>
+          </span>
+        </div>
+      </div>
+      <p className="app-preview__note">
+        Interface preview — illustrative numbers, not live data.
+      </p>
+    </div>
+  );
+}
+
 export function LandingPage() {
   const { status, user } = useAuth();
 
@@ -53,6 +169,35 @@ export function LandingPage() {
               How states are derived
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="landing__container landing__overview">
+        <div className="landing__section-head">
+          <p className="landing__kicker">Inside the app</p>
+          <h2>An overview of every screen</h2>
+          <p>
+            Six routed views built on one check log — open any screen below; with authentication
+            enabled they lead through the sign-in first.
+          </p>
+        </div>
+
+        <div className="bento">
+          <div className="span-12">
+            <AppPreview />
+          </div>
+          {SCREENS.map((screen) => (
+            <div className="span-4" key={screen.to}>
+              <Link className="card card--link landing__screen" to={screen.to}>
+                <span className="landing__screen-glyph" aria-hidden="true">
+                  {screen.glyph}
+                </span>
+                <h3 className="card__title">{screen.name}</h3>
+                <p className="card__subtitle">{screen.text}</p>
+                <span className="landing__screen-open">Open screen →</span>
+              </Link>
+            </div>
+          ))}
         </div>
       </section>
 

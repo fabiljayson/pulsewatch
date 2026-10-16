@@ -86,6 +86,17 @@ describe("Landing page", () => {
       expect(document.title).toBe("PulseWatch · API Health & Reliability Observatory"),
     );
     expect(screen.getByText("Honest health states")).toBeInTheDocument();
+
+    expect(screen.getByRole("heading", { name: "An overview of every screen" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /Preview of the PulseWatch overview dashboard/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Interface preview — illustrative numbers, not live data."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Reliability analytics/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Monitoring history/ })).toBeInTheDocument();
+
     await waitFor(() =>
       expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument(),
     );
