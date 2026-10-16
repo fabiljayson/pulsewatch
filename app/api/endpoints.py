@@ -19,6 +19,7 @@ from app.schemas import (
     HistoryPage,
     ReportRead,
 )
+from app.services.aggregates import statuses_for
 from app.services.checker import CheckService
 from app.services.reports import build_report
 from app.services.url_validation import BlockedDestinationError, UrlValidationError
@@ -40,6 +41,29 @@ def _get_endpoint_or_404(db: Database, endpoint_id: int):
             detail="Endpoint not found",
         )
     return endpoint
+
+
+def _with_status(
+    db: Database,
+    settings: Settings,
+    reads: list[EndpointRead],
+    *,
+    include_status: bool,
+    hours: int | None,
+) -> list[EndpointRead]:
+    """Attach the derived health state when the caller asked for it."""
+    if not include_status:
+        return reads
+    effective_hours = hours if hours is not None else settings.report_default_hours
+    statuses = statuses_for(
+        db,
+        hours=effective_hours,
+        settings=settings,
+        endpoint_ids=[read.id for read in reads],
+    )
+    for read in reads:
+        read.status = statuses.get(read.id)
+    return reads
 
 
 @router.post(
@@ -74,6 +98,13 @@ def list_endpoints(
         Query(ge=1, description="Page size; defaults to 100, capped by configuration."),
     ] = None,
     offset: Annotated[int, Query(ge=0, description="Rows to skip.")] = 0,
+    include_status: Annotated[
+        bool, Query(description="Attach each endpoint's derived health state.")
+    ] = False,
+    hours: Annotated[
+        int | None,
+        Query(ge=1, le=8760, description="Availability window in hours; defaults to 24."),
+    ] = None,
 ) -> EndpointList:
     """Return a bounded, paginated list of registered endpoints."""
     effective_limit = limit if limit is not None else settings.endpoints_list_default_limit
@@ -83,11 +114,12 @@ def list_endpoints(
             detail=f"limit must be at most {settings.endpoints_list_max_limit}",
         )
     items, total = repository.list_endpoints(db, limit=effective_limit, offset=offset)
+    reads = [EndpointRead.model_validate(item) for item in items]
     return EndpointList(
         total=total,
         limit=effective_limit,
         offset=offset,
-        items=[EndpointRead.model_validate(item) for item in items],
+        items=_with_status(db, settings, reads, include_status=include_status, hours=hours),
     )
 
 
@@ -98,9 +130,21 @@ def list_endpoints(
     summary="Retrieve one endpoint",
     responses={404: {"description": "Unknown endpoint id."}},
 )
-def get_endpoint(endpoint_id: EndpointId, db: DatabaseDep) -> EndpointRead:
+def get_endpoint(
+    endpoint_id: EndpointId,
+    db: DatabaseDep,
+    settings: SettingsDep,
+    include_status: Annotated[
+        bool, Query(description="Attach the endpoint's derived health state.")
+    ] = False,
+    hours: Annotated[
+        int | None,
+        Query(ge=1, le=8760, description="Availability window in hours; defaults to 24."),
+    ] = None,
+) -> EndpointRead:
     """Fetch a single registered endpoint by id."""
-    return EndpointRead.model_validate(_get_endpoint_or_404(db, endpoint_id))
+    read = EndpointRead.model_validate(_get_endpoint_or_404(db, endpoint_id))
+    return _with_status(db, settings, [read], include_status=include_status, hours=hours)[0]
 
 
 @router.patch(

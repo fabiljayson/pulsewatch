@@ -15,6 +15,7 @@ import httpx
 from fastapi import Depends, FastAPI
 
 from app import __version__
+from app.api.aggregates import router as aggregates_router
 from app.api.auth import router as auth_router
 from app.api.endpoints import router
 from app.auth import require_auth
@@ -79,6 +80,7 @@ def create_app(
         client_factory=client_factory,
     )
     app.include_router(auth_router)
+    app.include_router(aggregates_router, dependencies=[Depends(require_auth)])
     app.include_router(router, dependencies=[Depends(require_auth)])
 
     @app.get(

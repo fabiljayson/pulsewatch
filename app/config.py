@@ -71,6 +71,7 @@ class Settings:
     endpoints_list_max_limit: int = 500
     history_default_limit: int = 20
     report_max_hours: int = 8760
+    degraded_latency_ms: float = 1000.0
     admin_username: str = "admin"
     admin_password: str | None = None  # None disables authentication entirely
 
@@ -97,6 +98,9 @@ class Settings:
             ),
             report_default_hours=_env_int(
                 "PULSEWATCH_REPORT_DEFAULT_HOURS", 24, minimum=1, maximum=8760
+            ),
+            degraded_latency_ms=_env_float(
+                "PULSEWATCH_DEGRADED_LATENCY_MS", 1000.0, minimum=1.0, maximum=60000.0
             ),
             admin_username=_env_str("PULSEWATCH_ADMIN_USERNAME", "admin"),
             admin_password=os.environ.get("PULSEWATCH_ADMIN_PASSWORD") or None,

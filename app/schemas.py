@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.services.url_validation import validate_url_for_registration
@@ -82,6 +84,29 @@ class EndpointUpdate(BaseModel):
         return stripped
 
 
+class EndpointStatus(BaseModel):
+    """Derived health state for one endpoint over an explicit window.
+
+    ``state`` is ``unknown`` when the endpoint has never been checked — never
+    reported as healthy. ``degraded`` means the latest check succeeded but its
+    latency exceeded ``degraded_threshold_ms``.
+    """
+
+    state: Literal["healthy", "degraded", "failing", "unknown"]
+    checked_at: str | None = Field(default=None, description="Timestamp of the latest check.")
+    status_code: int | None = None
+    latency_ms: float | None = None
+    availability_percent: float | None = Field(
+        default=None,
+        description="successful / total * 100 in the window; null when no checks ran.",
+    )
+    total_checks: int = Field(description="Checks recorded in the window.")
+    window_hours: int
+    degraded_threshold_ms: float = Field(
+        description="Latency above this value marks a successful check as degraded."
+    )
+
+
 class EndpointRead(BaseModel):
     """Representation of a monitored endpoint."""
 
@@ -93,6 +118,10 @@ class EndpointRead(BaseModel):
     is_active: bool
     created_at: str = Field(description="UTC ISO-8601 creation timestamp.")
     updated_at: str = Field(description="UTC ISO-8601 last-update timestamp.")
+    status: EndpointStatus | None = Field(
+        default=None,
+        description="Derived health state; populated when include_status=true.",
+    )
 
 
 class EndpointList(BaseModel):
@@ -182,3 +211,80 @@ class HealthRead(BaseModel):
     status: str = Field(description="Service status.")
     service: str
     version: str
+
+
+class CheckItemRead(BaseModel):
+    """One check in the global history log, joined with its endpoint."""
+
+    id: int
+    endpoint_id: int
+    endpoint_name: str
+    endpoint_url: str
+    checked_at: str = Field(description="UTC ISO-8601 timestamp when the check began.")
+    status_code: int | None = None
+    latency_ms: float | None = None
+    success: bool
+    error_type: str | None = None
+
+
+class GlobalHistoryPage(BaseModel):
+    """Paginated check log across all endpoints, newest first."""
+
+    total: int = Field(description="Total checks matching the filters.")
+    limit: int
+    offset: int
+    items: list[CheckItemRead]
+
+
+class SummaryEndpointCounts(BaseModel):
+    """Endpoint counts by registration and by derived health state."""
+
+    total: int
+    active: int
+    inactive: int
+    healthy: int
+    degraded: int
+    failing: int
+    unknown: int = Field(description="Endpoints that have never been checked.")
+
+
+class SummaryRead(BaseModel):
+    """Aggregate dashboard summary over an explicit window."""
+
+    window: ReportWindow
+    endpoints: SummaryEndpointCounts
+    total_checks: int
+    successful_checks: int
+    failed_checks: int
+    availability_percent: float = Field(
+        description="successful_checks / total_checks * 100; 0.0 when no checks."
+    )
+    average_latency_ms: float | None = Field(
+        default=None,
+        description="Mean latency over checks with a measured response time.",
+    )
+    degraded_threshold_ms: float
+    last_check_at: str | None = Field(
+        default=None, description="Most recent check across all endpoints, any time."
+    )
+
+
+class TrendBucket(BaseModel):
+    """One time bucket in a response-time / availability series."""
+
+    bucket_start: str = Field(description="UTC ISO-8601 start of the bucket.")
+    total: int = Field(description="Checks in the bucket; 0 when none ran.")
+    successful: int
+    failed: int
+    average_latency_ms: float | None = Field(
+        default=None, description="Null when no check in the bucket measured latency."
+    )
+
+
+class TrendRead(BaseModel):
+    """Bucketed check counts and latency for charting, gaps included."""
+
+    window: ReportWindow
+    granularity: Literal["hour", "day"]
+    endpoint_id: int | None = None
+    buckets: list[TrendBucket]
