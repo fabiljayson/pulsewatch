@@ -230,7 +230,8 @@ export function RegisterEndpointPage() {
             </li>
             <li>
               <strong>Derived state.</strong> Healthy, degraded (slow success), failing, or not
-              checked yet — see the metric definitions on the About page.
+              checked yet — see the metric definitions on the{" "}
+              <Link to="/about">About page</Link>.
             </li>
           </ul>
         </Card>
