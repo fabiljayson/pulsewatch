@@ -768,3 +768,20 @@
 .plain-list strong {
   color: var(--pw-primary-strong);
 }
+
+/* ── Failure-cause share bars ── */
+
+.share-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(15, 76, 117, 0.12);
+  overflow: hidden;
+}
+
+.share-bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pw-primary);
+  transition: width var(--motion-normal) var(--motion-ease);
+}

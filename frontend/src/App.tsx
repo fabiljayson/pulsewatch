@@ -9,8 +9,12 @@ import { RequireAuth } from "./auth/RequireAuth";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EndpointDetailPage } from "./pages/EndpointDetailPage";
 import { EndpointsPage } from "./pages/EndpointsPage";
+import { HistoryPage } from "./pages/HistoryPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RegisterEndpointPage } from "./pages/RegisterEndpointPage";
+import { IncidentsPage } from "./pages/IncidentsPage";
+import { ReportsPage } from "./pages/ReportsPage";
 
 function AppRoutes() {
   return (
@@ -27,6 +31,10 @@ function AppRoutes() {
         <Route path="/endpoints" element={<EndpointsPage />} />
         <Route path="/endpoints/new" element={<RegisterEndpointPage />} />
         <Route path="/endpoints/:id" element={<EndpointDetailPage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/incidents" element={<IncidentsPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

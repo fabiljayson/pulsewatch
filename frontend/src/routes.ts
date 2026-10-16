@@ -18,6 +18,15 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/dashboard", label: "Overview", glyph: "◈" },
       { to: "/endpoints", label: "Endpoints", glyph: "☰" },
+      { to: "/history", label: "History", glyph: "◷" },
+    ],
+  },
+  {
+    label: "Analyze",
+    items: [
+      { to: "/analytics", label: "Reliability analytics", glyph: "◔" },
+      { to: "/reports", label: "Reports", glyph: "▤" },
+      { to: "/incidents", label: "Failure events", glyph: "⚠" },
     ],
   },
 ];
