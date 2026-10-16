@@ -7,7 +7,7 @@ All statements are parameterized. Connections come from
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.database import Database
 from app.models import CheckResult, MonitoredEndpoint
@@ -15,7 +15,7 @@ from app.models import CheckResult, MonitoredEndpoint
 
 def utc_now_iso() -> str:
     """Current UTC time as a sortable ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
+    return datetime.now(UTC).isoformat(timespec="microseconds")
 
 
 def _row_to_endpoint(row: sqlite3.Row) -> MonitoredEndpoint:
@@ -118,9 +118,7 @@ def update_endpoint(
 def delete_endpoint(db: Database, endpoint_id: int) -> bool:
     """Delete an endpoint; associated check history is cascade-deleted."""
     with db.connection() as conn:
-        cursor = conn.execute(
-            "DELETE FROM monitored_endpoints WHERE id = ?", (endpoint_id,)
-        )
+        cursor = conn.execute("DELETE FROM monitored_endpoints WHERE id = ?", (endpoint_id,))
         return cursor.rowcount > 0
 
 
@@ -143,9 +141,7 @@ def record_check(
             (endpoint_id, checked_at, status_code, latency_ms, int(success), error_type),
         )
         result_id = cursor.lastrowid
-        row = conn.execute(
-            "SELECT * FROM check_results WHERE id = ?", (result_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM check_results WHERE id = ?", (result_id,)).fetchone()
     assert row is not None
     return _row_to_check(row)
 
@@ -159,9 +155,7 @@ def count_checks(db: Database, endpoint_id: int) -> int:
     return int(row[0])
 
 
-def list_checks(
-    db: Database, endpoint_id: int, *, limit: int, offset: int
-) -> list[CheckResult]:
+def list_checks(db: Database, endpoint_id: int, *, limit: int, offset: int) -> list[CheckResult]:
     """Most recent checks for an endpoint, newest first."""
     with db.connection() as conn:
         rows = conn.execute(

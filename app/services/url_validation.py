@@ -70,7 +70,7 @@ def validate_url_syntax(url: str, *, max_length: int = MAX_URL_LENGTH) -> None:
         raise UrlValidationError("URL must be absolute and include a host")
     try:
         hostname = parts.hostname
-        _ = parts.port  # noqa: B018 - validates port syntax, raises ValueError
+        _ = parts.port
     except ValueError as exc:
         raise UrlValidationError("URL host or port is malformed") from exc
     if not hostname:

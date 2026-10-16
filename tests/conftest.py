@@ -59,9 +59,7 @@ def make_app(settings: Settings) -> Callable[..., Any]:
         resolver: Callable[[str, int], list[str]] | None = None,
         **overrides: Any,
     ) -> Any:
-        effective = (
-            dataclasses.replace(settings, **overrides) if overrides else settings
-        )
+        effective = dataclasses.replace(settings, **overrides) if overrides else settings
         return create_app(
             effective,
             transport=transport,
@@ -91,7 +89,9 @@ def mock_transport(
     return httpx.MockTransport(handler)
 
 
-def constant_transport(status_code: int, headers: dict[str, str] | None = None) -> httpx.MockTransport:
+def constant_transport(
+    status_code: int, headers: dict[str, str] | None = None
+) -> httpx.MockTransport:
     """Transport answering every request with a fixed status code."""
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -105,8 +105,6 @@ def register_endpoint(
     client: TestClient, *, name: str = "Example API", url: str = PUBLIC_URL
 ) -> dict[str, Any]:
     """Register an endpoint through the API and return its payload."""
-    response = client.post(
-        "/api/v1/endpoints", json={"name": name, "url": url}
-    )
+    response = client.post("/api/v1/endpoints", json={"name": name, "url": url})
     assert response.status_code == 201, response.text
     return response.json()

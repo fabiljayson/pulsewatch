@@ -7,7 +7,7 @@ timeouts and connection failures are excluded, never counted as zero.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.database import Database
 from app.repository import aggregate_checks
@@ -22,7 +22,7 @@ def build_report(
     now: datetime | None = None,
 ) -> ReportRead:
     """Aggregate check statistics for ``endpoint_id`` over the last ``hours``."""
-    end = now or datetime.now(timezone.utc)
+    end = now or datetime.now(UTC)
     start = end - timedelta(hours=hours)
     stats = aggregate_checks(
         db,

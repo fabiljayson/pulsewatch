@@ -36,7 +36,9 @@ def test_reject_unsupported_schemes(url: str) -> None:
         validate_url_syntax(url)
 
 
-@pytest.mark.parametrize("url", ["https://example.com/health", "http://example.com/", "https://example.com:8443/x?y=1"])
+@pytest.mark.parametrize(
+    "url", ["https://example.com/health", "http://example.com/", "https://example.com:8443/x?y=1"]
+)
 def test_accept_valid_http_urls(url: str) -> None:
     validate_url_syntax(url)
 
@@ -55,7 +57,13 @@ def test_reject_embedded_credentials(url: str) -> None:
 
 
 def test_reject_empty_and_whitespace() -> None:
-    for url in ("", "   ", "https://exa mple.com/", "https://example.com/\n", "https://\texample.com/"):
+    for url in (
+        "",
+        "   ",
+        "https://exa mple.com/",
+        "https://example.com/\n",
+        "https://\texample.com/",
+    ):
         with pytest.raises(UrlValidationError):
             validate_url_syntax(url)
 
@@ -80,7 +88,17 @@ def test_reject_missing_host() -> None:
 
 @pytest.mark.parametrize(
     "hostname",
-    ["localhost", "LOCALHOST", "localhost.", "foo.localhost", "metadata.google.internal", "metadata.goog", "service.internal", "printer.local", "instance-data"],
+    [
+        "localhost",
+        "LOCALHOST",
+        "localhost.",
+        "foo.localhost",
+        "metadata.google.internal",
+        "metadata.goog",
+        "service.internal",
+        "printer.local",
+        "instance-data",
+    ],
 )
 def test_reject_blocked_hostnames(hostname: str) -> None:
     with pytest.raises(BlockedDestinationError):
@@ -134,9 +152,7 @@ def test_reject_invalid_ip_string() -> None:
 
 
 def test_destination_validation_uses_resolver() -> None:
-    addresses = validate_url_destination(
-        "https://api.example.com/health", resolver=fake_resolver
-    )
+    addresses = validate_url_destination("https://api.example.com/health", resolver=fake_resolver)
     assert addresses == [PUBLIC_IP]
 
 
@@ -184,9 +200,7 @@ def test_redirect_location_absolute_and_relative() -> None:
     )
     assert absolute == "https://cdn.example.com/b"
 
-    relative = validate_redirect_location(
-        "https://api.example.com/a", "/b", resolver=fake_resolver
-    )
+    relative = validate_redirect_location("https://api.example.com/a", "/b", resolver=fake_resolver)
     assert relative == "https://api.example.com/b"
 
 

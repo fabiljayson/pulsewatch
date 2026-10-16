@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.database import Database
-from app.repository import create_endpoint, record_check
+from app.repository import record_check
 
 from .conftest import PUBLIC_URL, register_endpoint
 
@@ -52,20 +52,12 @@ def test_history_descending_order(client, settings) -> None:
 def test_history_pagination(client, settings) -> None:
     created = register_endpoint(client)
     db = Database(settings.db_path)
-    timestamps = [
-        f"2026-02-{day:02d}T00:00:00.000000+00:00" for day in range(1, 6)
-    ]
+    timestamps = [f"2026-02-{day:02d}T00:00:00.000000+00:00" for day in range(1, 6)]
     _seed_checks(db, created["id"], timestamps)
 
-    page1 = client.get(
-        f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=0"
-    ).json()
-    page2 = client.get(
-        f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=2"
-    ).json()
-    page3 = client.get(
-        f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=4"
-    ).json()
+    page1 = client.get(f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=0").json()
+    page2 = client.get(f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=2").json()
+    page3 = client.get(f"/api/v1/endpoints/{created['id']}/history?limit=2&offset=4").json()
 
     assert [i["checked_at"] for i in page1["items"]] == timestamps[4:2:-1]
     assert [i["checked_at"] for i in page2["items"]] == timestamps[2:0:-1]

@@ -128,9 +128,7 @@ class CheckService:
         except DnsResolutionError:
             return self._persist_failure(endpoint.id, checked_at, error_type="dns_error")
         except UrlValidationError:
-            return self._persist_failure(
-                endpoint.id, checked_at, error_type="blocked_destination"
-            )
+            return self._persist_failure(endpoint.id, checked_at, error_type="blocked_destination")
 
         max_hops = self._settings.max_redirects if self._settings.allow_redirects else 0
         async with self._client_factory() as client:
@@ -205,7 +203,9 @@ class CheckService:
             error_type=None if success else "http_error",
         )
 
-    def _persist_failure(self, endpoint_id: int, checked_at: str, *, error_type: str) -> CheckResult:
+    def _persist_failure(
+        self, endpoint_id: int, checked_at: str, *, error_type: str
+    ) -> CheckResult:
         return record_check(
             self._db,
             endpoint_id=endpoint_id,

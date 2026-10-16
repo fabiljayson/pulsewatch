@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from app.database import Database
-from app.repository import create_endpoint, record_check, utc_now_iso
+from app.repository import record_check, utc_now_iso
 
 from .conftest import PUBLIC_URL, register_endpoint
 
@@ -98,7 +98,7 @@ def test_report_availability_decimal(client, settings) -> None:
 def test_report_time_window_filtering(client, settings) -> None:
     created = register_endpoint(client)
     db = Database(settings.db_path)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     recent = (now - timedelta(hours=1)).isoformat(timespec="microseconds")
     old = (now - timedelta(hours=48)).isoformat(timespec="microseconds")
 

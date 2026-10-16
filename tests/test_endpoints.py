@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import sqlite3
-
 from app.database import Database
 from app.repository import record_check
 
@@ -34,16 +32,12 @@ def test_create_endpoint_trims_name(client) -> None:
 
 
 def test_create_blank_name_rejected(client) -> None:
-    response = client.post(
-        "/api/v1/endpoints", json={"name": "   ", "url": PUBLIC_URL}
-    )
+    response = client.post("/api/v1/endpoints", json={"name": "   ", "url": PUBLIC_URL})
     assert response.status_code == 422
 
 
 def test_create_name_too_long_rejected(client) -> None:
-    response = client.post(
-        "/api/v1/endpoints", json={"name": "x" * 101, "url": PUBLIC_URL}
-    )
+    response = client.post("/api/v1/endpoints", json={"name": "x" * 101, "url": PUBLIC_URL})
     assert response.status_code == 422
 
 
@@ -61,9 +55,7 @@ def test_create_missing_fields_rejected(client) -> None:
 
 
 def test_create_unsupported_scheme_rejected(client) -> None:
-    response = client.post(
-        "/api/v1/endpoints", json={"name": "ftp", "url": "ftp://example.com/x"}
-    )
+    response = client.post("/api/v1/endpoints", json={"name": "ftp", "url": "ftp://example.com/x"})
     assert response.status_code == 422
 
 
@@ -87,17 +79,13 @@ def test_create_loopback_url_rejected(client) -> None:
         "http://foo.localhost/x",
         "http://metadata.google.internal/computeMetadata/v1/",
     ):
-        response = client.post(
-            "/api/v1/endpoints", json={"name": "bad", "url": url}
-        )
+        response = client.post("/api/v1/endpoints", json={"name": "bad", "url": url})
         assert response.status_code == 422, url
 
 
 def test_create_malformed_url_rejected(client) -> None:
     for url in ("not-a-url", "https://", "example.com/x", "http://exa mple.com/"):
-        response = client.post(
-            "/api/v1/endpoints", json={"name": "bad", "url": url}
-        )
+        response = client.post("/api/v1/endpoints", json={"name": "bad", "url": url})
         assert response.status_code == 422, url
 
 
@@ -144,9 +132,7 @@ def test_get_non_integer_id_422(client) -> None:
 
 def test_patch_name(client) -> None:
     created = register_endpoint(client)
-    response = client.patch(
-        f"/api/v1/endpoints/{created['id']}", json={"name": "Renamed"}
-    )
+    response = client.patch(f"/api/v1/endpoints/{created['id']}", json={"name": "Renamed"})
     assert response.status_code == 200
     body = response.json()
     assert body["name"] == "Renamed"
@@ -156,9 +142,7 @@ def test_patch_name(client) -> None:
 
 def test_patch_is_active(client) -> None:
     created = register_endpoint(client)
-    response = client.patch(
-        f"/api/v1/endpoints/{created['id']}", json={"is_active": False}
-    )
+    response = client.patch(f"/api/v1/endpoints/{created['id']}", json={"is_active": False})
     assert response.status_code == 200
     assert response.json()["is_active"] is False
 
@@ -186,9 +170,7 @@ def test_patch_unknown_404(client) -> None:
 
 def test_patch_blank_name_422(client) -> None:
     created = register_endpoint(client)
-    response = client.patch(
-        f"/api/v1/endpoints/{created['id']}", json={"name": "  "}
-    )
+    response = client.patch(f"/api/v1/endpoints/{created['id']}", json={"name": "  "})
     assert response.status_code == 422
 
 
@@ -238,9 +220,7 @@ def test_database_persists_across_app_instances(make_app, settings) -> None:
 def test_sql_injection_payload_stored_as_data(client, settings) -> None:
     evil_name = "'; DROP TABLE check_results; --"
     evil_url = "https://example.com/q?x=1'%20OR%20'1'='1"
-    response = client.post(
-        "/api/v1/endpoints", json={"name": evil_name, "url": evil_url}
-    )
+    response = client.post("/api/v1/endpoints", json={"name": evil_name, "url": evil_url})
     assert response.status_code == 201
     payload = response.json()
     assert payload["name"] == evil_name
@@ -253,9 +233,7 @@ def test_sql_injection_payload_stored_as_data(client, settings) -> None:
     with db.connection() as conn:
         tables = {
             row[0]
-            for row in conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table'"
-            ).fetchall()
+            for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         }
     assert "check_results" in tables
     assert "monitored_endpoints" in tables

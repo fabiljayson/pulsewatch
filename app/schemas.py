@@ -162,8 +162,7 @@ class ReportRead(BaseModel):
     average_latency_ms: float | None = Field(
         default=None,
         description=(
-            "Mean latency over checks with a measured response time; "
-            "null when none were measured."
+            "Mean latency over checks with a measured response time; null when none were measured."
         ),
     )
     first_check_at: str | None = None

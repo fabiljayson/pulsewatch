@@ -49,9 +49,7 @@ def _get_endpoint_or_404(db: Database, endpoint_id: int):
     tags=["endpoints"],
     summary="Register a monitored endpoint",
     responses={
-        422: {
-            "description": "Validation failed (name, URL syntax, or blocked destination)."
-        }
+        422: {"description": "Validation failed (name, URL syntax, or blocked destination)."}
     },
 )
 def create_endpoint(payload: EndpointCreate, db: DatabaseDep) -> EndpointRead:
@@ -125,9 +123,7 @@ def update_endpoint(
         db, endpoint_id, name=payload.name, is_active=payload.is_active
     )
     if updated is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Endpoint not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Endpoint not found")
     return EndpointRead.model_validate(updated)
 
 
@@ -141,9 +137,7 @@ def update_endpoint(
 def delete_endpoint(endpoint_id: EndpointId, db: DatabaseDep) -> None:
     """Delete an endpoint; its check history is cascade-deleted."""
     if not repository.delete_endpoint(db, endpoint_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Endpoint not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Endpoint not found")
 
 
 @router.post(

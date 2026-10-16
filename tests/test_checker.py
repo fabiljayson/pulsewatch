@@ -208,9 +208,7 @@ async def test_redirect_to_private_destination_blocked(settings) -> None:
     endpoint = create_endpoint(db, name="evil-hop", url=PUBLIC_URL)
 
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            302, headers={"location": "http://169.254.169.254/latest/meta-data/"}
-        )
+        return httpx.Response(302, headers={"location": "http://169.254.169.254/latest/meta-data/"})
 
     service = _service(enabled, db, handler)
     result = await service.run_check(endpoint)
