@@ -12,10 +12,12 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
 from app import __version__
+from app.api.auth import router as auth_router
 from app.api.endpoints import router
+from app.auth import require_auth
 from app.config import Settings
 from app.database import Database
 from app.services.checker import CheckService
@@ -27,6 +29,7 @@ OPENAPI_TAGS = [
     {"name": "checks", "description": "Execute health checks on demand."},
     {"name": "history", "description": "Persisted check results, newest first."},
     {"name": "reports", "description": "Reliability metrics over an explicit time window."},
+    {"name": "auth", "description": "Single-admin login (enabled when a password is configured)."},
 ]
 
 APP_DESCRIPTION = """
@@ -75,7 +78,8 @@ def create_app(
         transport=transport,
         client_factory=client_factory,
     )
-    app.include_router(router)
+    app.include_router(auth_router)
+    app.include_router(router, dependencies=[Depends(require_auth)])
 
     @app.get(
         "/health",

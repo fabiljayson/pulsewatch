@@ -71,6 +71,13 @@ class Settings:
     endpoints_list_max_limit: int = 500
     history_default_limit: int = 20
     report_max_hours: int = 8760
+    admin_username: str = "admin"
+    admin_password: str | None = None  # None disables authentication entirely
+
+    @property
+    def auth_enabled(self) -> bool:
+        """Authentication is active only when an admin password is configured."""
+        return self.admin_password is not None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -91,4 +98,6 @@ class Settings:
             report_default_hours=_env_int(
                 "PULSEWATCH_REPORT_DEFAULT_HOURS", 24, minimum=1, maximum=8760
             ),
+            admin_username=_env_str("PULSEWATCH_ADMIN_USERNAME", "admin"),
+            admin_password=os.environ.get("PULSEWATCH_ADMIN_PASSWORD") or None,
         )
