@@ -28,6 +28,7 @@ router = APIRouter()
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 DatabaseDep = Annotated[Database, Depends(get_database)]
 CheckerDep = Annotated[CheckService, Depends(get_checker)]
+HTTP_422 = status.HTTP_422_UNPROCESSABLE_CONTENT
 EndpointId = Annotated[int, Path(ge=1, description="Endpoint identifier.")]
 
 
@@ -80,7 +81,7 @@ def list_endpoints(
     effective_limit = limit if limit is not None else settings.endpoints_list_default_limit
     if effective_limit > settings.endpoints_list_max_limit:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=HTTP_422,
             detail=f"limit must be at most {settings.endpoints_list_max_limit}",
         )
     items, total = repository.list_endpoints(db, limit=effective_limit, offset=offset)
@@ -117,7 +118,7 @@ def update_endpoint(
     """Apply a partial update; at least one field must be provided."""
     if payload.name is None and payload.is_active is None:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=HTTP_422,
             detail="At least one of 'name' or 'is_active' must be provided",
         )
     updated = repository.update_endpoint(
@@ -196,7 +197,7 @@ def endpoint_history(
     effective_limit = limit if limit is not None else settings.history_default_limit
     if effective_limit > settings.history_max_limit:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=HTTP_422,
             detail=f"limit must be at most {settings.history_max_limit}",
         )
     items = repository.list_checks(db, endpoint_id, limit=effective_limit, offset=offset)

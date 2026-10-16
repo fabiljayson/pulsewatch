@@ -42,7 +42,7 @@ def _row_to_check(row: sqlite3.Row) -> CheckResult:
 
 
 def create_endpoint(
-    db: Database, *, name: str, url: str, is_active: bool
+    db: Database, *, name: str, url: str, is_active: bool = True
 ) -> MonitoredEndpoint:
     """Insert a monitored endpoint and return the stored row."""
     now = utc_now_iso()

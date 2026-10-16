@@ -9,6 +9,7 @@ no storage of response bodies or headers.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import time
 from collections.abc import Callable
 from urllib.parse import urljoin, urlsplit
@@ -26,6 +27,7 @@ from app.services.url_validation import (
     UrlValidationError,
     hostname_is_blocked,
     resolve_host,
+    validate_ip_address,
     validate_resolved_addresses,
     validate_url_syntax,
 )
@@ -104,6 +106,14 @@ class CheckService:
         assert hostname is not None
         if hostname_is_blocked(hostname):
             raise BlockedDestinationError("URL hostname is not allowed")
+        try:
+            literal = ipaddress.ip_address(hostname)
+        except ValueError:
+            literal = None
+        if literal is not None:
+            # IP-literal destination: the address itself must be public.
+            validate_ip_address(literal)
+            return
         port = parts.port or (443 if parts.scheme.lower() == "https" else 80)
         addresses = await self._resolve(hostname, port)
         validate_resolved_addresses(addresses)

@@ -106,7 +106,7 @@ def validate_ip_address(ip: str | ipaddress.IPv4Address | ipaddress.IPv6Address)
         or address.is_multicast
         or address.is_unspecified
         or address.is_reserved
-        or address.is_site_local
+        or (isinstance(address, ipaddress.IPv6Address) and address.is_site_local)
         or not address.is_global
     )
     if forbidden:
@@ -157,6 +157,14 @@ def validate_url_destination(
     assert hostname is not None
     if hostname_is_blocked(hostname):
         raise BlockedDestinationError("URL hostname is not allowed")
+    try:
+        literal = ipaddress.ip_address(hostname)
+    except ValueError:
+        literal = None
+    if literal is not None:
+        # IP-literal destination: the address itself must be public.
+        validate_ip_address(literal)
+        return [str(literal)]
     port = parts.port or (443 if parts.scheme.lower() == "https" else 80)
     try:
         addresses = resolver(hostname, port)

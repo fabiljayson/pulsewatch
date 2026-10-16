@@ -107,6 +107,8 @@ class EndpointList(BaseModel):
 class CheckResultRead(BaseModel):
     """A single recorded health check."""
 
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     endpoint_id: int
     checked_at: str = Field(description="UTC ISO-8601 timestamp when the check began.")
