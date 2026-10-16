@@ -1,0 +1,74 @@
+/* ── PulseWatch design tokens (from design.md) ── */
+
+:root {
+  /* Brand */
+  --pw-primary: #3282b8;
+  --pw-primary-strong: #1b262c;
+  --pw-primary-soft: #bbe1fa;
+  --pw-accent: #3282b8;
+
+  /* Surfaces */
+  --pw-surface: #eff8ff;
+  --pw-surface-muted: #bbe1fa;
+  --pw-surface-raised: #ffffff;
+
+  /* Text & border */
+  --pw-text: #0b1820;
+  --pw-text-muted: #3d5463;
+  --pw-border: #0f4c75;
+  --pw-border-soft: rgba(15, 76, 117, 0.18);
+
+  /* Feedback */
+  --pw-success: #16a34a;
+  --pw-warning: #d97706;
+  --pw-danger: #dc2626;
+
+  /* Feedback soft surfaces */
+  --pw-success-soft: #dcfce7;
+  --pw-warning-soft: #fef3c7;
+  --pw-danger-soft: #fee2e2;
+
+  /* Typography */
+  --pw-font: "Geist", system-ui, sans-serif;
+  --pw-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --pw-weight: 600;
+
+  /* Spacing scale */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+  --sp-section: 48px;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Motion */
+  --motion-fast: 120ms;
+  --motion-normal: 180ms;
+  --motion-slow: 260ms;
+  --motion-ease: cubic-bezier(0.2, 0.6, 0.3, 1);
+
+  /* Layout */
+  --sidebar-width: 248px;
+  --topbar-height: 64px;
+  --container-max: 1200px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+    --motion-slow: 0ms;
+  }
+}
+
+::selection {
+  background-color: var(--pw-primary-strong);
+  color: var(--pw-surface);
+  text-shadow: none;
+}
