@@ -123,7 +123,8 @@ class CheckResultRead(BaseModel):
         default=None,
         description=(
             "Safe error category (timeout, connection_error, invalid_response, "
-            "dns_error, blocked_destination, too_many_redirects, http_error) or null."
+            "dns_error, blocked_destination, too_many_redirects, transport_error, "
+            "http_error) or null."
         ),
     )
 

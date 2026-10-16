@@ -79,7 +79,7 @@ def validate_url_syntax(url: str, *, max_length: int = MAX_URL_LENGTH) -> None:
         raise UrlValidationError("URL must not include embedded credentials")
 
 
-def _hostname_is_blocked(hostname: str) -> bool:
+def hostname_is_blocked(hostname: str) -> bool:
     normalized = hostname.strip().rstrip(".").lower()
     if not normalized:
         return True
@@ -118,7 +118,7 @@ def validate_url_for_registration(url: str, *, max_length: int = MAX_URL_LENGTH)
     validate_url_syntax(url, max_length=max_length)
     hostname = urlsplit(url).hostname
     assert hostname is not None
-    if _hostname_is_blocked(hostname):
+    if hostname_is_blocked(hostname):
         raise BlockedDestinationError("URL hostname is not allowed")
     try:
         ipaddress.ip_address(hostname)
@@ -155,7 +155,7 @@ def validate_url_destination(
     parts = urlsplit(url)
     hostname = parts.hostname
     assert hostname is not None
-    if _hostname_is_blocked(hostname):
+    if hostname_is_blocked(hostname):
         raise BlockedDestinationError("URL hostname is not allowed")
     port = parts.port or (443 if parts.scheme.lower() == "https" else 80)
     try:
