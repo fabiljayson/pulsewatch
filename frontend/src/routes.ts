@@ -29,6 +29,13 @@ export const NAV_SECTIONS: NavSection[] = [
       { to: "/incidents", label: "Failure events", glyph: "⚠" },
     ],
   },
+  {
+    label: "System",
+    items: [
+      { to: "/settings", label: "Settings", glyph: "⚙" },
+      { to: "/about", label: "About", glyph: "ℹ" },
+    ],
+  },
 ];
 
 const TITLES: [string, string][] = [
